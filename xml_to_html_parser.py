@@ -380,6 +380,9 @@ class PomodoroLeaderboardParser:
             font-weight: bold;
             font-size: 1.2em;
             color: #1976d2;
+            position: sticky;
+            left: 120px;
+            z-index: 5;
         }}
         
         .mvp-row {{
@@ -526,13 +529,14 @@ class PomodoroLeaderboardParser:
                         <thead>
                             <tr>
                                 <th class="user-name">User</th>
+                                <th class="total-column">Total 🍅</th>
         """
         
-        # Add date headers
-        for date in self.dates:
+        # Add date headers in reverse order (most recent first)
+        for date in reversed(self.dates):
             html += f'<th>{date}</th>'
         
-        html += '<th class="total-column">Total 🍅</th></tr></thead><tbody>'
+        html += '</tr></thead><tbody>'
         
         # Sort users by total score for ranking
         sorted_users = sorted(self.totals.items(), key=lambda x: x[1], reverse=True)
@@ -541,11 +545,14 @@ class PomodoroLeaderboardParser:
         for rank, (username, total) in enumerate(sorted_users, 1):
             rank_class = f'rank-{rank}' if rank <= 3 else ''
             html += f'<tr><td class="user-name {rank_class}">#{rank} {username}</td>'
+            html += f'<td class="total-column">{total}</td>'
             
             user_scores = self.users_data.get(username, [])
             max_score = max(user_scores) if user_scores else 0
             
-            for i, score in enumerate(user_scores):
+            # Display scores in reverse order (most recent first)
+            for i in reversed(range(len(user_scores))):
+                score = user_scores[i]
                 score_class = 'score-cell'
                 if score > 0:
                     if max_score > 0:
@@ -558,14 +565,16 @@ class PomodoroLeaderboardParser:
                 
                 html += f'<td class="{score_class}">{score}</td>'
             
-            html += f'<td class="total-column">{total}</td></tr>'
+            html += '</tr>'
         
         # Add MVP row
         html += '<tr class="mvp-row"><td class="user-name"><strong>👑 MVP</strong></td>'
-        for i in range(len(self.dates)):
+        html += '<td class="mvp-cell">-</td>'
+        # Display MVP data in reverse order (most recent first)
+        for i in reversed(range(len(self.dates))):
             mvp = self.mvp_data.get(i, '')
             html += f'<td class="mvp-cell">{mvp}</td>'
-        html += '<td class="mvp-cell">-</td></tr>'
+        html += '</tr>'
         
         html += '</tbody></table></div></div>'
         
